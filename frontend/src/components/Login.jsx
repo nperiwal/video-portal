@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate, Navigate } from 'react-router-dom'
+import { useNavigate, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { toast } from 'react-toastify'
 import Cookies from 'js-cookie'
 import '../styles/Auth.css'
+import '../styles/Login.css'
 
 const Login = () => {
   const [email, setEmail] = useState('')
@@ -11,6 +12,11 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false)
   const { login, user, isAuthenticated } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+
+  // Get the return path and message from location state
+  const from = location.state?.from || '/';
+  const message = location.state?.message;
 
   useEffect(() => {
     console.log('Login component mounted') // Debug log
@@ -37,12 +43,15 @@ const Login = () => {
     setIsLoading(true)
     
     try {
-      const userData = await login(email, password)
-      console.log('Login successful:', userData)
+      await login(email, password)
       
-      toast.success('Login successful!')
-      
-      // Navigation will be handled by the useEffect above
+      // Show message if provided
+      if (message) {
+        toast.info(message)
+      }
+
+      // Navigate to the return path
+      navigate(from, { replace: true })
     } catch (error) {
       console.error('Login error:', error)
       toast.error(error.response?.data?.detail || 'Login failed')
@@ -57,45 +66,51 @@ const Login = () => {
 
   return (
     <div className="auth-container" style={{ border: '1px solid red' }}> {/* Debug border */}
-      <form onSubmit={handleSubmit} className="auth-form" style={{ border: '1px solid blue' }}> {/* Debug border */}
+      <div className="login-card">
         <h2>Login to Video Portal</h2>
-        
-        <div className="form-group">
-          <label htmlFor="email">Email</label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Enter your email"
-            required
-          />
-        </div>
+        {message && (
+          <div className="login-message">
+            {message}
+          </div>
+        )}
+        <form onSubmit={handleSubmit} className="auth-form" style={{ border: '1px solid blue' }}> {/* Debug border */}
+          <div className="form-group">
+            <label htmlFor="email">Email</label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your email"
+              required
+            />
+          </div>
 
-        <div className="form-group">
-          <label htmlFor="password">Password</label>
-          <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter your password"
-            required
-          />
-        </div>
+          <div className="form-group">
+            <label htmlFor="password">Password</label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter your password"
+              required
+            />
+          </div>
 
-        <button 
-          type="submit" 
-          className="auth-button"
-          disabled={isLoading}
-        >
-          {isLoading ? 'Logging in...' : 'Login'}
-        </button>
+          <button 
+            type="submit" 
+            className="auth-button"
+            disabled={isLoading}
+          >
+            {isLoading ? 'Logging in...' : 'Login'}
+          </button>
 
-        <div className="auth-links">
-          <a href="/signup">Don't have an account? Sign up</a>
-        </div>
-      </form>
+          <div className="auth-links">
+            <a href="/signup">Don't have an account? Sign up</a>
+          </div>
+        </form>
+      </div>
     </div>
   )
 }

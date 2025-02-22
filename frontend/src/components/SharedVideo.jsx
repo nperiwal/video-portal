@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import VideoPlayer from './VideoPlayer';
 import { toast } from 'react-toastify';
@@ -9,27 +9,42 @@ const SharedVideo = () => {
   const { shareToken } = useParams();
   const [video, setVideo] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { api } = useAuth();
+  const { api, user } = useAuth();
+  const location = useLocation();
 
   useEffect(() => {
     const fetchVideo = async () => {
       try {
-        console.log('Fetching video with share token:', shareToken); // Debug log
+        console.log('Fetching video with share token:', shareToken);
         const response = await api.get(`/api/videos/share/${shareToken}`);
-        console.log('Video data:', response.data); // Debug log
+        console.log('Video data:', response.data);
         setVideo(response.data);
       } catch (error) {
-        console.error('Error fetching video:', error); // Debug log
+        console.error('Error fetching video:', error);
         toast.error('Failed to load video');
       } finally {
         setLoading(false);
       }
     };
 
-    if (shareToken) {
+    if (shareToken && user) {
       fetchVideo();
+    } else {
+      setLoading(false);
     }
-  }, [shareToken, api]);
+  }, [shareToken, api, user]);
+
+  if (!user) {
+    // Redirect to login with return path
+    return <Navigate 
+      to="/login" 
+      state={{ 
+        from: location.pathname,
+        message: "Please log in to view this shared video"
+      }} 
+      replace 
+    />;
+  }
 
   if (loading) {
     return <div className="loading">Loading video...</div>;
