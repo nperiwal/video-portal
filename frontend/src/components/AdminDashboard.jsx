@@ -12,7 +12,7 @@ const AdminDashboard = () => {
     title: '',
     description: '',
     url: '',
-    albumId: ''
+    album_id: ''
   });
   const [loading, setLoading] = useState(true);
 
@@ -37,6 +37,7 @@ const AdminDashboard = () => {
   const fetchAlbums = async () => {
     try {
       const response = await api.get('/api/videos/albums');
+      console.log('Albums loaded:', response.data);
       setAlbums(response.data);
     } catch (error) {
       toast.error('Failed to fetch albums');
@@ -67,6 +68,7 @@ const AdminDashboard = () => {
 
   const handleAddVideo = async (e) => {
     e.preventDefault();
+    console.log('Submitting video with data:', newVideo);
     try {
       await api.post('/api/videos/videos', newVideo);
       toast.success('Video added successfully');
@@ -74,10 +76,11 @@ const AdminDashboard = () => {
         title: '',
         description: '',
         url: '',
-        albumId: ''
+        album_id: ''
       });
       fetchAlbums();
     } catch (error) {
+      console.error('Error adding video:', error);
       toast.error('Failed to add video');
     }
   };
@@ -157,8 +160,8 @@ const AdminDashboard = () => {
               required
             />
             <select
-              value={newVideo.albumId}
-              onChange={(e) => setNewVideo({...newVideo, albumId: e.target.value})}
+              value={newVideo.album_id}
+              onChange={(e) => setNewVideo({...newVideo, album_id: e.target.value})}
               required
             >
               <option value="">Select Album</option>

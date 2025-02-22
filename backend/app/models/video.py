@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import datetime
 
@@ -13,8 +13,13 @@ class Album(BaseModel):
     created_by: str
     created_at: datetime
     updated_at: datetime
-    video_count: int = 0
-    is_active: bool = True
+    video_count: int = Field(default=0)
+    is_active: bool = Field(default=True)
+
+    class Config:
+        json_encoders = {
+            datetime: lambda v: v.isoformat()
+        }
 
 class VideoBase(BaseModel):
     title: str
@@ -30,4 +35,10 @@ class Video(VideoBase):
     created_at: datetime
     updated_at: datetime
     created_by: str  # user_id of creator
-    share_token: Optional[str] = None  # For generating unique sharing links 
+    share_token: Optional[str] = None  # For generating unique sharing links
+    album_id: Optional[str] = None  # Make sure this is included
+
+    class Config:
+        json_encoders = {
+            datetime: lambda v: v.isoformat()
+        } 

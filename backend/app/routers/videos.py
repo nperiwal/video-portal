@@ -10,26 +10,41 @@ router = APIRouter()
 
 @router.post("/albums", response_model=Album)
 async def create_album(album: AlbumCreate, current_user=Depends(get_current_user)):
-    if not current_user.get("is_admin"):
+    try:
+        if not current_user.get("is_admin"):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only admins can create albums"
+            )
+        
+        print(f"Creating album with data: {album.dict()}")  # Debug log
+        print(f"Current user: {current_user}")  # Debug log
+        
+        db = get_db()
+        album_dict = album.dict()
+        album_dict.update({
+            "id": str(ObjectId()),
+            "created_by": current_user["sub"],
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow(),
+            "video_count": 0,
+            "is_active": True
+        })
+        
+        print(f"Album dict before insert: {album_dict}")  # Debug log
+        
+        result = db.albums.insert_one(album_dict)
+        album_dict["_id"] = str(result.inserted_id)
+        
+        print(f"Album created: {album_dict}")  # Debug log
+        
+        return Album(**album_dict)
+    except Exception as e:
+        print(f"Error creating album: {str(e)}")  # Debug log
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only admins can create albums"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error creating album: {str(e)}"
         )
-    
-    db = get_db()
-    album_dict = album.dict()
-    album_dict.update({
-        "id": str(ObjectId()),
-        "created_by": current_user["sub"],
-        "created_at": datetime.utcnow(),
-        "updated_at": datetime.utcnow(),
-        "video_count": 0,
-        "is_active": True
-    })
-    
-    result = db.albums.insert_one(album_dict)
-    album_dict["_id"] = str(result.inserted_id)
-    return Album(**album_dict)
 
 @router.post("/videos", response_model=Video)
 async def create_video(video: VideoCreate, current_user=Depends(get_current_user)):
@@ -41,6 +56,8 @@ async def create_video(video: VideoCreate, current_user=Depends(get_current_user
     
     db = get_db()
     video_dict = video.dict()
+    print(f"Creating video with data: {video_dict}")  # Debug log
+    
     video_dict.update({
         "id": str(ObjectId()),
         "created_by": current_user["sub"],
@@ -51,11 +68,14 @@ async def create_video(video: VideoCreate, current_user=Depends(get_current_user
     
     if video.album_id:
         album = db.albums.find_one({"id": video.album_id})
+        print(f"Found album for video: {album}")  # Debug log
         if not album:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Album not found"
             )
+        # Make sure album_id is included in video_dict
+        video_dict["album_id"] = video.album_id
         db.albums.update_one(
             {"id": video.album_id},
             {"$inc": {"video_count": 1}}
@@ -63,6 +83,7 @@ async def create_video(video: VideoCreate, current_user=Depends(get_current_user
     
     result = db.videos.insert_one(video_dict)
     video_dict["_id"] = str(result.inserted_id)
+    print(f"Created video: {video_dict}")  # Debug log
     return Video(**video_dict)
 
 @router.get("/videos/{video_id}")
@@ -122,4 +143,45 @@ async def get_albums(current_user: dict = Depends(get_current_user)):
         if "id" not in album:
             album["id"] = str(album["_id"])
     
-    return albums 
+    return albums
+
+@router.get("/albums/{album_id}/videos")
+async def get_album_videos(
+    album_id: str, 
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all videos in an album"""
+    if not current_user.get("is_approved") and not current_user.get("is_admin"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User not approved"
+        )
+    
+    db = get_db()
+    
+    # First check if album exists
+    album = db.albums.find_one({"id": album_id})
+    print(f"Looking for album with id: {album_id}")
+    print(f"Found album: {album}")
+    
+    if not album:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Album not found"
+        )
+    
+    # Get all videos in the album
+    videos = list(db.videos.find({"album_id": album_id}))
+    print(f"Found videos: {videos}")
+    
+    # Let's also check all videos in the collection
+    all_videos = list(db.videos.find({}))
+    print(f"All videos in DB: {all_videos}")
+    
+    # Convert ObjectId to string for JSON serialization
+    for video in videos:
+        video["_id"] = str(video["_id"])
+        if "created_by" in video:
+            video["created_by"] = str(video["created_by"])
+    
+    return videos 

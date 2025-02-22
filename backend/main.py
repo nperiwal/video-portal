@@ -14,6 +14,12 @@ from app.utils.auth import (
     ALGORITHM
 )
 from app.routers import admin, videos
+from app.utils.db import init_db, get_db
+import logging
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Add this import for OAuth2 bearer token
 from fastapi.security import OAuth2PasswordBearer
@@ -33,7 +39,7 @@ app.add_middleware(
 # MongoDB connection
 MONGO_URL = "mongodb://localhost:27017"
 client = MongoClient(MONGO_URL)
-db = client.video_platform
+db = client.video_portal
 
 # Add this near the top with other initializations
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
@@ -47,26 +53,35 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str
 
+@app.on_event("startup")
+async def startup_event():
+    init_db()
+
 @app.get("/")
 async def root():
     return {"message": "Video Portal API"}
 
 @app.post("/api/auth/login")
 async def login(user_data: UserLogin):
+    logger.info(f"Login attempt for email: {user_data.email}")
     user = db.users.find_one({"email": user_data.email})
     if not user:
+        logger.error(f"No user found with email: {user_data.email}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password"
         )
     
+    logger.info(f"Found user: {user['_id']}")
     if not verify_password(user_data.password, user["hashed_password"]):
+        logger.error("Invalid password")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password"
         )
     
     access_token = create_access_token(data={"sub": str(user["_id"])})
+    logger.info(f"Created token for user: {user['_id']}")
     
     # Make sure all user fields are included in response
     user_data = {
@@ -115,22 +130,33 @@ async def register(user_data: UserCreate):
 
 @app.get("/api/test/create-admin")
 async def create_test_admin():
-    # Create admin user for testing
-    admin_data = {
-        "email": "admin@example.com",
-        "hashed_password": get_password_hash("admin123"),
-        "is_admin": True,
-        "is_approved": True,
-        "created_at": datetime.utcnow()
-    }
-    
-    # Check if admin already exists
-    existing_admin = db.users.find_one({"email": admin_data["email"]})
-    if existing_admin:
-        return {"message": "Admin user already exists"}
-    
-    db.users.insert_one(admin_data)
-    return {"message": "Admin user created successfully"}
+    try:
+        db = get_db()
+        # Create admin user for testing
+        admin_data = {
+            "email": "admin@example.com",
+            "hashed_password": get_password_hash("admin123"),
+            "is_admin": True,
+            "is_approved": True,
+            "created_at": datetime.utcnow()
+        }
+        
+        # Check if admin already exists
+        existing_admin = db.users.find_one({"email": admin_data["email"]})
+        if existing_admin:
+            return {"message": "Admin user already exists", "id": str(existing_admin["_id"])}
+        
+        result = db.users.insert_one(admin_data)
+        return {
+            "message": "Admin user created successfully",
+            "id": str(result.inserted_id)
+        }
+    except Exception as e:
+        logger.error(f"Error creating admin: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
 
 @app.get("/api/test/db")
 async def test_db():
