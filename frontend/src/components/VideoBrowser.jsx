@@ -5,7 +5,7 @@ import VideoPlayer from './VideoPlayer';
 import '../styles/VideoBrowser.css';
 
 const VideoBrowser = () => {
-  const { api } = useAuth();
+  const { api, user } = useAuth();
   const [albums, setAlbums] = useState([]);
   const [selectedAlbum, setSelectedAlbum] = useState(null);
   const [videos, setVideos] = useState([]);
@@ -100,12 +100,14 @@ const VideoBrowser = () => {
           <div className="video-player-container">
             <div className="video-header">
               <h2>{selectedVideo.title}</h2>
-              <button 
-                className="share-button"
-                onClick={() => handleGenerateShareLink(selectedVideo.id)}
-              >
-                Generate Share Link
-              </button>
+              {user?.is_admin && (
+                <button 
+                  className="share-button"
+                  onClick={() => handleGenerateShareLink(selectedVideo.id)}
+                >
+                  Generate Share Link
+                </button>
+              )}
             </div>
             <VideoPlayer videoUrl={selectedVideo.url} />
             <p className="video-description">{selectedVideo.description}</p>

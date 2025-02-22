@@ -63,6 +63,7 @@ const AdminDashboard = () => {
       await api.post(`/api/admin/users/${userId}/approve`);
       toast.success('User approved successfully');
       fetchPendingUsers();
+      fetchApprovedUsers();
     } catch (error) {
       toast.error('Failed to approve user');
     }
@@ -99,6 +100,12 @@ const AdminDashboard = () => {
     }
   };
 
+  const sortUsersByDate = (users) => {
+    return [...users].sort((a, b) => {
+      return new Date(b.created_at) - new Date(a.created_at);
+    });
+  };
+
   if (loading) {
     return <div className="loading">Loading...</div>;
   }
@@ -108,9 +115,11 @@ const AdminDashboard = () => {
       <h2>Admin Dashboard</h2>
       
       <section className="pending-users-section">
-        <h3>Pending Users</h3>
+        <h3>Pending Users ({pendingUsers.length})</h3>
         <div className="user-list">
-          {pendingUsers.map(user => (
+          {loading ? (
+            <p className="loading">Loading pending users...</p>
+          ) : sortUsersByDate(pendingUsers).map(user => (
             <div key={user.id} className="user-card">
               <div className="user-info">
                 <p><strong>Email:</strong> {user.email}</p>
@@ -132,9 +141,11 @@ const AdminDashboard = () => {
       </section>
 
       <section className="approved-users-section">
-        <h3>Approved Users</h3>
+        <h3>Approved Users ({approvedUsers.length})</h3>
         <div className="user-list">
-          {approvedUsers.map(user => (
+          {loading ? (
+            <p className="loading">Loading approved users...</p>
+          ) : sortUsersByDate(approvedUsers).map(user => (
             <div key={user.id} className="user-card">
               <div className="user-info">
                 <p><strong>Email:</strong> {user.email}</p>
