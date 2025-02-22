@@ -1,12 +1,17 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from ..models.video import VideoCreate, Video, AlbumCreate, Album
-from ..utils.auth import get_current_user
+from ..utils.auth import get_current_user, get_current_admin_user
 from ..utils.db import get_db
 from datetime import datetime
 import uuid
 from bson import ObjectId
+import secrets
 
 router = APIRouter()
+
+# Add this function to generate share tokens
+def generate_share_token():
+    return secrets.token_urlsafe(16)
 
 @router.post("/albums", response_model=Album)
 async def create_album(album: AlbumCreate, current_user=Depends(get_current_user)):
@@ -184,4 +189,80 @@ async def get_album_videos(
         if "created_by" in video:
             video["created_by"] = str(video["created_by"])
     
-    return videos 
+    return videos
+
+@router.post("/videos/{video_id}/share")
+async def generate_share_link(
+    video_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Generate a share token for a video"""
+    try:
+        db = get_db()
+        
+        # Add debug logging
+        print(f"Looking for video with ID: {video_id}")
+        
+        # Get all videos to check the data structure
+        all_videos = list(db.videos.find({}))
+        print(f"All videos in DB: {all_videos}")
+        
+        video = db.videos.find_one({"id": video_id})
+        print(f"Found video: {video}")
+        
+        if not video:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Video not found"
+            )
+        
+        # Generate new share token
+        share_token = generate_share_token()
+        print(f"Generated share token: {share_token}")
+        
+        # Update video
+        result = db.videos.update_one(
+            {"id": video_id},
+            {"$set": {"share_token": share_token}}
+        )
+        print(f"Update result: {result.modified_count} documents modified")
+        
+        return {
+            "share_token": share_token,
+            "share_url": f"/share/{share_token}"
+        }
+    except Exception as e:
+        print(f"Error in generate_share_link: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+@router.get("/share/{share_token}")
+async def get_shared_video(share_token: str, current_user: dict = Depends(get_current_user)):
+    """Get video by share token"""
+    try:
+        db = get_db()
+        print(f"Looking for video with share token: {share_token}")  # Debug log
+        
+        video = db.videos.find_one({"share_token": share_token})
+        print(f"Found video: {video}")  # Debug log
+        
+        if not video:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Video not found"
+            )
+        
+        # Convert ObjectId to string
+        video["_id"] = str(video["_id"])
+        if "created_by" in video:
+            video["created_by"] = str(video["created_by"])
+            
+        return video
+    except Exception as e:
+        print(f"Error getting shared video: {str(e)}")  # Debug log
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        ) 

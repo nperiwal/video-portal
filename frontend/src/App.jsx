@@ -11,6 +11,7 @@ import PendingApproval from './components/PendingApproval'
 import Cookies from 'js-cookie'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
+import SharedVideo from './components/SharedVideo'
 
 // Protected Route Component
 const PrivateRoute = ({ children }) => {
@@ -110,6 +111,9 @@ const App = () => {
               <AdminDashboard />
             </AdminRoute>
           } />
+          
+          {/* Shared Video Route */}
+          <Route path="/share/:shareToken" element={<SharedVideo />} />
           
           {/* Default Route */}
           <Route path="/" element={

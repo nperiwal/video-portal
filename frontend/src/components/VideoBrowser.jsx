@@ -12,6 +12,7 @@ const VideoBrowser = () => {
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [shareUrl, setShareUrl] = useState('');
 
   useEffect(() => {
     fetchAlbums();
@@ -47,16 +48,19 @@ const VideoBrowser = () => {
     setSelectedVideo(null);
   };
 
-  const handleShareVideo = async (video) => {
+  const handleGenerateShareLink = async (videoId) => {
     try {
-      const response = await api.post(
-        `/api/videos/${video.id}/share`,
-        {}
-      );
-      const shareLink = `${window.location.origin}/watch/${response.data.share_token}`;
-      await navigator.clipboard.writeText(shareLink);
+      console.log('Generating share link for video:', videoId);
+      const response = await api.post(`/api/videos/videos/${videoId}/share`);
+      const baseUrl = window.location.origin;
+      const shareUrl = `${baseUrl}/share/${response.data.share_token}`;
+      setShareUrl(shareUrl);
+      
+      // Copy to clipboard
+      await navigator.clipboard.writeText(shareUrl);
       toast.success('Share link copied to clipboard!');
     } catch (error) {
+      console.error('Error generating share link:', error.response?.data || error);
       toast.error('Failed to generate share link');
     }
   };
@@ -98,9 +102,9 @@ const VideoBrowser = () => {
               <h2>{selectedVideo.title}</h2>
               <button 
                 className="share-button"
-                onClick={() => handleShareVideo(selectedVideo)}
+                onClick={() => handleGenerateShareLink(selectedVideo.id)}
               >
-                Share Video
+                Generate Share Link
               </button>
             </div>
             <VideoPlayer videoUrl={selectedVideo.url} />
