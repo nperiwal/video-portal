@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends, status
 from bson import ObjectId
 from ..utils.db import get_db
 from ..utils.auth import get_current_user
+from pymongo import MongoClient
 
 router = APIRouter()
 
@@ -48,4 +49,27 @@ async def approve_user(
     )
     if result.modified_count == 0:
         raise HTTPException(status_code=404, detail="User not found")
-    return {"message": "User approved successfully"} 
+    return {"message": "User approved successfully"}
+
+@router.get("/users/approved")
+async def get_approved_users(current_user: dict = Depends(get_current_admin_user)):
+    db = get_db()
+    # Add logging
+    print("Current admin user:", current_user)
+    
+    query = {"is_approved": True}
+    print("Query:", query)
+    
+    users = list(db.users.find(query, {"hashed_password": 0}))
+    print("Found users:", users)
+    
+    result = [
+        {
+            "id": str(user["_id"]),
+            "email": user["email"],
+            "phone_number": user.get("phone_number"),
+            "created_at": user.get("created_at")
+        } for user in users
+    ]
+    print("Returning result:", result)
+    return result 

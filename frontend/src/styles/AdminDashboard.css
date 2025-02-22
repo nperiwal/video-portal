@@ -121,4 +121,20 @@ form button:hover {
   min-height: 200px;
   font-size: 1.2rem;
   color: #666;
+}
+
+.approved-users-section {
+  margin-top: 2rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.approved-status {
+  color: #28a745;
+  font-weight: 500;
+  padding: 0.25rem 0.5rem;
+  background: #e8f5e9;
+  border-radius: 4px;
 } 

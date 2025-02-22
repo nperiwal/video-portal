@@ -6,6 +6,7 @@ import '../styles/AdminDashboard.css';
 const AdminDashboard = () => {
   const { api } = useAuth();
   const [pendingUsers, setPendingUsers] = useState([]);
+  const [approvedUsers, setApprovedUsers] = useState([]);
   const [albums, setAlbums] = useState([]);
   const [newAlbum, setNewAlbum] = useState({ title: '', description: '' });
   const [newVideo, setNewVideo] = useState({
@@ -18,6 +19,7 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     fetchPendingUsers();
+    fetchApprovedUsers();
     fetchAlbums();
   }, []);
 
@@ -31,6 +33,18 @@ const AdminDashboard = () => {
       toast.error('Failed to fetch pending users');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchApprovedUsers = async () => {
+    try {
+      console.log('Fetching approved users...');
+      const response = await api.get('/api/admin/users/approved');
+      console.log('Approved users response:', response);
+      setApprovedUsers(response.data);
+    } catch (error) {
+      console.error('Error fetching approved users:', error.response || error);
+      toast.error(`Failed to fetch approved users: ${error.response?.data?.detail || error.message}`);
     }
   };
 
@@ -113,6 +127,25 @@ const AdminDashboard = () => {
           ))}
           {pendingUsers.length === 0 && (
             <p className="no-data">No pending users</p>
+          )}
+        </div>
+      </section>
+
+      <section className="approved-users-section">
+        <h3>Approved Users</h3>
+        <div className="user-list">
+          {approvedUsers.map(user => (
+            <div key={user.id} className="user-card">
+              <div className="user-info">
+                <p><strong>Email:</strong> {user.email}</p>
+                <p><strong>Phone:</strong> {user.phone_number || 'Not provided'}</p>
+                <p><strong>Joined:</strong> {new Date(user.created_at).toLocaleDateString()}</p>
+                <p><strong>Status:</strong> <span className="approved-status">Approved ✓</span></p>
+              </div>
+            </div>
+          ))}
+          {approvedUsers.length === 0 && (
+            <p className="no-data">No approved users</p>
           )}
         </div>
       </section>
