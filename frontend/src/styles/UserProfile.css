@@ -1,0 +1,147 @@
+.profile-container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.profile-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+}
+
+.profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.profile-header h2 {
+  margin: 0;
+  color: #2c3e50;
+}
+
+.edit-button {
+  background: #3498db;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.edit-button:hover {
+  background: #2980b9;
+}
+
+.info-group {
+  margin-bottom: 1.5rem;
+}
+
+.info-group label {
+  display: block;
+  color: #7f8c8d;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.info-group p {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1.1rem;
+}
+
+.status {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+}
+
+.status.approved {
+  background: #2ecc71;
+  color: white;
+}
+
+.status.pending {
+  background: #f1c40f;
+  color: #2c3e50;
+}
+
+.edit-form .form-group {
+  margin-bottom: 1.5rem;
+}
+
+.edit-form input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.button-group {
+  display: flex;
+  gap: 1rem;
+}
+
+.save-button, .cancel-button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.save-button {
+  background: #2ecc71;
+  color: white;
+}
+
+.save-button:hover {
+  background: #27ae60;
+}
+
+.cancel-button {
+  background: #e74c3c;
+  color: white;
+}
+
+.cancel-button:hover {
+  background: #c0392b;
+}
+
+.approval-section {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+}
+
+.request-approval-button {
+  background: #f39c12;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+  width: 100%;
+}
+
+.request-approval-button:hover {
+  background: #d68910;
+}
+
+.approval-note {
+  margin-top: 0.5rem;
+  color: #7f8c8d;
+  font-size: 0.9rem;
+  text-align: center;
+} 

@@ -1,0 +1,166 @@
+.video-browser {
+  display: flex;
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.sidebar {
+  width: 300px;
+  flex-shrink: 0;
+}
+
+.album-list {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+.album-item {
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.album-item:hover {
+  background: #f8f9fa;
+}
+
+.album-item.selected {
+  background: #e3f2fd;
+  border-left: 4px solid #3498db;
+}
+
+.album-item h4 {
+  margin: 0;
+  color: #2c3e50;
+}
+
+.video-count {
+  font-size: 0.9rem;
+  color: #7f8c8d;
+}
+
+.main-content {
+  flex: 1;
+}
+
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.video-card {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.video-card:hover {
+  transform: translateY(-2px);
+}
+
+.video-thumbnail {
+  position: relative;
+  padding-top: 56.25%; /* 16:9 aspect ratio */
+}
+
+.video-thumbnail img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.video-card h4 {
+  padding: 1rem;
+  margin: 0;
+  color: #2c3e50;
+}
+
+.video-player-container {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.video-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.share-button {
+  padding: 0.5rem 1rem;
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.share-button:hover {
+  background: #2980b9;
+}
+
+.video-description {
+  margin-top: 1.5rem;
+  color: #2c3e50;
+  line-height: 1.6;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: #7f8c8d;
+}
+
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  font-size: 1.2rem;
+  color: #666;
+}
+
+.error-message {
+  color: #dc3545;
+  text-align: center;
+  padding: 2rem;
+  background: #fff;
+  border-radius: 8px;
+  margin: 2rem;
+}
+
+.no-albums {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+}
+
+.albums-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.album-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+} 
