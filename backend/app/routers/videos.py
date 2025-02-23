@@ -155,45 +155,21 @@ async def get_albums(current_user: dict = Depends(get_current_user)):
     return albums
 
 @router.get("/albums/{album_id}/videos")
-async def get_album_videos(
-    album_id: str, 
-    current_user: dict = Depends(get_current_user)
-):
-    """Get all videos in an album"""
-    if not current_user.get("is_approved") and not current_user.get("is_admin"):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="User not approved"
-        )
-    
-    db = get_db()
-    
-    # First check if album exists
-    album = db.albums.find_one({"id": album_id})
-    print(f"Looking for album with id: {album_id}")
-    print(f"Found album: {album}")
-    
-    if not album:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Album not found"
-        )
-    
-    # Get all videos in the album
-    videos = list(db.videos.find({"album_id": album_id}))
-    print(f"Found videos: {videos}")
-    
-    # Let's also check all videos in the collection
-    all_videos = list(db.videos.find({}))
-    print(f"All videos in DB: {all_videos}")
-    
-    # Convert ObjectId to string for JSON serialization
-    for video in videos:
-        video["_id"] = str(video["_id"])
-        if "created_by" in video:
+async def get_album_videos(album_id: str):
+    try:
+        # Convert string ID to ObjectId
+        album_object_id = ObjectId(album_id)
+        db = get_db()
+        videos = list(db.videos.find({"album_id": str(album_object_id)}))
+        
+        # Convert ObjectId to string for JSON response
+        for video in videos:
+            video["_id"] = str(video["_id"])
             video["created_by"] = str(video["created_by"])
-    
-    return videos
+            
+        return videos
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
 @router.post("/videos/{video_id}/share")
 async def generate_share_link(

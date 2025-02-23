@@ -49,7 +49,7 @@ const Layout = ({ children }) => {
         </main>
 
         <footer className="footer">
-          <p>&copy; 2024 Video Portal. All rights reserved.</p>
+          <p>&copy; 2025 Video Portal. All rights reserved.</p>
         </footer>
       </div>
     </div>
