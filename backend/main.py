@@ -243,6 +243,51 @@ async def create_album(
             detail=f"Error creating album: {str(e)}"
         )
 
+@app.get("/api/videos/share/{share_token}")
+async def get_shared_video(share_token: str, current_user: dict = Depends(get_current_user)):
+    """Get video by share token"""
+    try:
+        # First check if user exists and is approved
+        db = get_db()
+        user = db.users.find_one({"_id": ObjectId(current_user["sub"])})
+        
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+            
+        # Check if user is approved or admin
+        if not user.get("is_approved") and not user.get("is_admin"):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Your account is pending approval. You will be able to watch videos once an admin approves your account."
+            )
+        
+        # Then look for the video
+        video = db.videos.find_one({"share_token": share_token})
+        if not video:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Video not found"
+            )
+        
+        # Convert ObjectId to string
+        video["_id"] = str(video["_id"])
+        if "created_by" in video:
+            video["created_by"] = str(video["created_by"])
+            
+        return video
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error getting shared video: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000) 

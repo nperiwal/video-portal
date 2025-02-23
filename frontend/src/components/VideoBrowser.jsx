@@ -66,23 +66,28 @@ const VideoBrowser = () => {
   };
 
   const VideoCard = ({ video }) => {
+    const [thumbnailError, setThumbnailError] = useState(false);
     const isBunnyUrl = video.url.includes('bunny.net') || video.url.includes('mediadelivery.net');
     
     const thumbnailUrl = isBunnyUrl 
-      ? `${video.url}/preview` // Bunny.net preview image
+      ? `${video.url}/thumbnail` // Changed from /preview to /thumbnail
       : `https://img.youtube.com/vi/${video.url.split('v=')[1]}/mqdefault.jpg`;
 
     return (
       <div className="video-card" onClick={() => setSelectedVideo(video)}>
         <div className="video-thumbnail">
-          <img 
-            src={thumbnailUrl}
-            alt={video.title}
-            onError={(e) => {
-              e.target.onerror = null;
-              e.target.src = '/default-thumbnail.jpg'; // Fallback image
-            }}
-          />
+          {thumbnailError ? (
+            <div className="thumbnail-placeholder">
+              <span>{video.title}</span>
+            </div>
+          ) : (
+            <img 
+              src={thumbnailUrl}
+              alt={video.title}
+              onError={() => setThumbnailError(true)}
+              loading="lazy"
+            />
+          )}
         </div>
         <h4>{video.title}</h4>
       </div>
