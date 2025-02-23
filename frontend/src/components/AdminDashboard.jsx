@@ -196,13 +196,15 @@ const AdminDashboard = () => {
               value={newVideo.description}
               onChange={(e) => setNewVideo({...newVideo, description: e.target.value})}
             />
-            <input
-              type="url"
-              placeholder="YouTube Video URL"
-              value={newVideo.url}
-              onChange={(e) => setNewVideo({...newVideo, url: e.target.value})}
-              required
-            />
+            <div className="form-group">
+              <label>Video URL (YouTube or Bunny.net):</label>
+              <input
+                type="text"
+                value={newVideo.url}
+                onChange={(e) => setNewVideo({...newVideo, url: e.target.value})}
+                placeholder="Enter YouTube or Bunny.net video URL"
+              />
+            </div>
             <select
               value={newVideo.album_id}
               onChange={(e) => setNewVideo({...newVideo, album_id: e.target.value})}

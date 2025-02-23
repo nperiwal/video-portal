@@ -65,6 +65,30 @@ const VideoBrowser = () => {
     }
   };
 
+  const VideoCard = ({ video }) => {
+    const isBunnyUrl = video.url.includes('bunny.net') || video.url.includes('mediadelivery.net');
+    
+    const thumbnailUrl = isBunnyUrl 
+      ? `${video.url}/preview` // Bunny.net preview image
+      : `https://img.youtube.com/vi/${video.url.split('v=')[1]}/mqdefault.jpg`;
+
+    return (
+      <div className="video-card" onClick={() => setSelectedVideo(video)}>
+        <div className="video-thumbnail">
+          <img 
+            src={thumbnailUrl}
+            alt={video.title}
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = '/default-thumbnail.jpg'; // Fallback image
+            }}
+          />
+        </div>
+        <h4>{video.title}</h4>
+      </div>
+    );
+  };
+
   if (loading) {
     return <div className="loading-spinner">Loading albums...</div>;
   }
@@ -115,19 +139,7 @@ const VideoBrowser = () => {
         ) : selectedAlbum ? (
           <div className="video-grid">
             {videos.map(video => (
-              <div
-                key={video.id}
-                className="video-card"
-                onClick={() => setSelectedVideo(video)}
-              >
-                <div className="video-thumbnail">
-                  <img 
-                    src={`https://img.youtube.com/vi/${video.url.split('v=')[1]}/mqdefault.jpg`}
-                    alt={video.title}
-                  />
-                </div>
-                <h4>{video.title}</h4>
-              </div>
+              <VideoCard key={video.id} video={video} />
             ))}
           </div>
         ) : (

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from ..models.video import VideoCreate, Video, AlbumCreate, Album
 from ..utils.auth import get_current_user, get_current_admin_user
 from ..utils.db import get_db
@@ -6,12 +6,16 @@ from datetime import datetime
 import uuid
 from bson import ObjectId
 import secrets
+from ..services.bunny_service import BunnyService
+from typing import Optional
 
 router = APIRouter()
 
 # Add this function to generate share tokens
 def generate_share_token():
     return secrets.token_urlsafe(16)
+
+bunny_service = BunnyService()
 
 @router.post("/albums", response_model=Album)
 async def create_album(album: AlbumCreate, current_user=Depends(get_current_user)):
@@ -265,4 +269,54 @@ async def get_shared_video(share_token: str, current_user: dict = Depends(get_cu
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e)
-        ) 
+        )
+
+@router.post("/videos/upload")
+async def upload_video(
+    title: str,
+    description: Optional[str] = None,
+    album_id: Optional[str] = None,
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
+    if not current_user.get("is_admin"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admins can upload videos"
+        )
+    
+    # Upload to Bunny.net
+    bunny_response = await bunny_service.upload_video(file, title)
+    if not bunny_response:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to upload video"
+        )
+    
+    # Create video document in your database
+    video_data = {
+        "title": title,
+        "description": description,
+        "url": bunny_response["url"],
+        "thumbnail_url": bunny_response["thumbnail"],
+        "video_id": bunny_response["video_id"],
+        "album_id": album_id,
+        "created_by": current_user["sub"],
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow()
+    }
+    
+    db = get_db()
+    result = db.videos.insert_one(video_data)
+    
+    # Update album video count if needed
+    if album_id:
+        db.albums.update_one(
+            {"_id": ObjectId(album_id)},
+            {"$inc": {"video_count": 1}}
+        )
+    
+    return {
+        "id": str(result.inserted_id),
+        **video_data
+    } 

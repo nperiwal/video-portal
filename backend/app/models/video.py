@@ -1,6 +1,7 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 from typing import Optional, List
 from datetime import datetime
+from urllib.parse import urlparse
 
 class AlbumCreate(BaseModel):
     title: str
@@ -24,8 +25,17 @@ class Album(BaseModel):
 class VideoBase(BaseModel):
     title: str
     description: Optional[str] = None
-    url: str  # YouTube video URL
+    url: str  # Video URL
     album_id: Optional[str] = None
+
+    @validator('url')
+    def validate_video_url(cls, v):
+        parsed = urlparse(v)
+        # Allow both Bunny.net and YouTube URLs
+        valid_domains = ['youtube.com', 'youtu.be', 'iframe.mediadelivery.net']
+        if not any(domain in parsed.netloc for domain in valid_domains):
+            raise ValueError('Invalid video URL. Must be from YouTube or Bunny.net')
+        return v
 
 class VideoCreate(VideoBase):
     pass
