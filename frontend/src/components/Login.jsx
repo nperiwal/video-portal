@@ -65,52 +65,50 @@ const Login = () => {
   }
 
   return (
-    <div className="auth-container" style={{ border: '1px solid red' }}> {/* Debug border */}
-      <div className="login-card">
+    <div className="auth-container">
+      <form className="auth-form" onSubmit={handleSubmit}>
         <h2>Login to Video Portal</h2>
         {message && (
           <div className="login-message">
             {message}
           </div>
         )}
-        <form onSubmit={handleSubmit} className="auth-form" style={{ border: '1px solid blue' }}> {/* Debug border */}
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              required
-            />
-          </div>
+        <div className="form-group">
+          <label htmlFor="email">Email</label>
+          <input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter your email"
+            required
+          />
+        </div>
 
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-              required
-            />
-          </div>
+        <div className="form-group">
+          <label htmlFor="password">Password</label>
+          <input
+            id="password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Enter your password"
+            required
+          />
+        </div>
 
-          <button 
-            type="submit" 
-            className="auth-button"
-            disabled={isLoading}
-          >
-            {isLoading ? 'Logging in...' : 'Login'}
-          </button>
+        <button 
+          type="submit" 
+          className="auth-button"
+          disabled={isLoading}
+        >
+          {isLoading ? 'Logging in...' : 'Login'}
+        </button>
 
-          <div className="auth-links">
-            <a href="/signup">Don't have an account? Sign up</a>
-          </div>
-        </form>
-      </div>
+        <div className="auth-links">
+          <a href="/signup">Don't have an account? Sign up</a>
+        </div>
+      </form>
     </div>
   )
 }
